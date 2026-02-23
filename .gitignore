@@ -1,0 +1,51 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Build directories
+**/build/*
+
+# macOS
+**/.DS_Store
+
+# IDE settings
+**/.vscode/*
+**/.vs/*
+
+# Xcode user data
+**/xcuserdata/*
+**/DerivedData/*
+
+# Tiled editor sessions
+*/*.tiled-session
+assets/untitled.tiled-session
+*.tiled-session
