@@ -17,19 +17,6 @@ ValuableSet::Valuable::Valuable(const cugl::Vec2 p, int type) {
 }
 
 /**
- * Allocates an asteroid by setting its position, type, and texture
- *
- * @param p     The position
- * @param v     The velocity
- * @param type  The type (1, 2, or 3)
- */
-ValuableSet::Valuable::Valuable(const cugl::Vec2 p, int type, std::shared_ptr<cugl::graphics::Texture> texture) {
-    position = p;
-    setType(type);
-    setTexture(texture);
-}
-
-/**
  * Returns the type of this valuable.
  *
  * All valuables have types 1 or 2.  2 is the larger type of
@@ -42,7 +29,7 @@ void ValuableSet::Valuable::setType(int type) {
     _type = type;
     switch (type) {
     case 2:
-        _scale = 1.25;
+        _scale = 1;
         break;
     case 1:
         _scale = .5;
@@ -53,14 +40,20 @@ void ValuableSet::Valuable::setType(int type) {
     }
 }
 
+void ValuableSet::Valuable::setState(Status state, int id) {
+    _state = state;
+    carrierID = id;
+}
+
 /**
  * Updates the valuable one animation frame
  *
  * This method performs no
  * collision detection. Collisions are resolved afterwards.
  */
-void ValuableSet::Valuable::update(Size size) {
+void ValuableSet::Valuable::update(Size size, Vec2 pos) {
     // position += velocity;
+    position = pos;
 }
 
 #pragma mark Valuable Set
@@ -115,6 +108,27 @@ bool ValuableSet::init(std::shared_ptr<cugl::JsonValue> data) {
 }
 
 /**
+ * Sets the image for a single valuable; reused by all valuables.
+ *
+ * This value should be loaded by the GameScene and set there. However,
+ * we have to be prepared for this to be null at all times.
+ *
+ * @param value the image for a single photon; reused by all photons.
+ */
+void ValuableSet::setTexture(const std::shared_ptr<Texture>& value) {
+    if (value > 0) {
+        Size size = value->getSize();
+
+        _radius = std::max(size.width, size.height) / 2;
+        _texture = value;
+    }
+    else {
+        _radius = 0;
+        _texture = nullptr;
+    }
+}
+
+/**
  * Adds a valuable to the active queue.
  *
  * @param p     The valuable position.
@@ -122,7 +136,7 @@ bool ValuableSet::init(std::shared_ptr<cugl::JsonValue> data) {
  */
 void ValuableSet::spawnValuable(Vec2 p, int t) {
     std::shared_ptr<Valuable> rock = std::make_shared<Valuable>(p, t);
-    
+    rock->setState(Valuable::FREE, -1);
     current.emplace(rock);
 }
 
@@ -132,10 +146,13 @@ void ValuableSet::spawnValuable(Vec2 p, int t) {
  * This method performs no collision detection. Collisions
  * are resolved afterwards.
  */
-void ValuableSet::update(Size size) {
+void ValuableSet::update(Size size, std::vector<cugl::Vec2> pos) {
     // Move asteroids, updating the animation frame
     for (auto it = current.begin(); it != current.end(); ++it) {
-        (*it)->update(size);
+        if ((*it)->getCarrier() != -1) {
+            (*it)->update(size, pos[(*it)->getCarrier()]);
+        }
+        (*it)->update(size, (*it)->position);
     }
 }
 
@@ -148,8 +165,8 @@ void ValuableSet::update(Size size) {
  * @param size      The size of the window (for wrap around)
  */
 void ValuableSet::draw(const std::shared_ptr<SpriteBatch>& batch, Size size) {
-    for (auto it = current.begin(); it != current.end(); ++it) {
-        if ((*it)->getTexture()) {
+    if (_texture) {
+        for (auto it = current.begin(); it != current.end(); ++it) {
             float scale = (*it)->getScale();
             Vec2 pos = (*it)->position;
             Vec2 origin(_radius, _radius);
@@ -159,7 +176,7 @@ void ValuableSet::draw(const std::shared_ptr<SpriteBatch>& batch, Size size) {
             trans.translate(pos);
 
             float r = _radius * scale;
-            batch->draw((*it)->getTexture(), origin, trans);
+            batch->draw(_texture, origin, trans);
         }
     }
 }

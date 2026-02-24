@@ -42,8 +42,10 @@ public:
         float _scale;
         /** Whether the valuable is picked up by a player */
         Status _state;
+        /** ID of the player who is currently carrying the object */
+        int carrierID = -1;
         /** The texture for the valuable sprite sheet. */
-        std::shared_ptr<cugl::graphics::Texture> _texture;
+        /*std::shared_ptr<cugl::graphics::Texture> _texture;*/
 
     public:
         /**
@@ -63,7 +65,7 @@ public:
          * @param type  The type (1 or 2)
          * @param texture The texture
          */
-        Valuable(const cugl::Vec2 p, int type, std::shared_ptr<cugl::graphics::Texture> texture);
+        /*Valuable(const cugl::Vec2 p, int type, std::shared_ptr<cugl::graphics::Texture> texture);*/
 
         /**
          * Returns the scale of this valuable.
@@ -87,6 +89,13 @@ public:
         int getType() const { return _type; }
 
         /**
+         * Returns the carrier ID of this valuable. Will return -1 if the valuable is not carried.
+         *
+         * @return the carrier ID of this valuable.
+         */
+        int getCarrier() const { return carrierID; }
+
+        /**
          * Returns the type of this valuable.
          *
          * All valuables have types 1 or 2.  2 is the larger type of
@@ -96,21 +105,33 @@ public:
          */
         void setType(int type);
 
-        void setTexture(const std::shared_ptr<cugl::graphics::Texture>& value);
+        /*void setTexture(const std::shared_ptr<cugl::graphics::Texture>& value);
 
         const std::shared_ptr<cugl::graphics::Texture>& getTexture() const {
             return _texture;
-        }
+        }*/
+
+        Status getState() { return _state; }
+
+        /**
+         * Updates the state of this valuable.
+         *
+         *
+         * @param state  The state of this valuable.
+         * @param id     The id of the player carrying this valuable. (should be -1 if the valuable is FREE or STORED)
+         */
+        void setState(Status state, int id = -1);
 
         /**
          * Updates the valuable one animation frame
          */
-        void update(cugl::Size size);
+        void update(cugl::Size size, Vec2 pos);
 
     };
 
 private:
-
+    /** The texture for the valuable sprite sheet. */
+    std::shared_ptr<cugl::graphics::Texture> _texture;
     /** The radius of a general valuable */
     float _radius;
 
@@ -160,6 +181,12 @@ public:
      */
     float getRadius() const { return _radius; }
 
+    const std::shared_ptr<cugl::graphics::Texture>& getTexture() const {
+        return _texture;
+    }
+
+    void setTexture(const std::shared_ptr<cugl::graphics::Texture>& value);
+
     /**
      * Adds a valuable to the active queue.
      *
@@ -172,7 +199,7 @@ public:
      * Updates all the valuables in the active set.
      *
      */
-    void update(cugl::Size size);
+    void update(cugl::Size size, std::vector<cugl::Vec2> pos);
 
     /**
      * Draws all active valuables to the sprite batch within the given bounds.
