@@ -29,10 +29,10 @@ void ValuableSet::Valuable::setType(int type) {
     _type = type;
     switch (type) {
     case 2:
-        _scale = 1;
+        _scale = 0.2;
         break;
     case 1:
-        _scale = .5;
+        _scale = .15;
         break;
     default:
         _scale = 0.0f;
