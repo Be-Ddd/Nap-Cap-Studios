@@ -112,8 +112,13 @@ void GameScene::update(float dt) {
     if (_input.didPressReset()) {
         reset();
     }
+    std::cout << "Enter update" << endl;
     if (_gameState==GameState::PLAYING){
         // the update loop
+        std::vector<cugl::Vec2> player_pos;
+        player_pos.push_back(_player->getPosition());
+        _valuables.update(getSize(), player_pos);
+
         if (_collisions.resolveCollisions(_player, _valuables)) {
             std::cout<<"Collision between player and valuable"<<endl;
         }
