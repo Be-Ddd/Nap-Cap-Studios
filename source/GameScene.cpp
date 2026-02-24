@@ -151,7 +151,10 @@ void GameScene::update(float dt) {
     }
     if (_gameState==GameState::PLAYING){
         // the update loop
+        if (_collisions.resolveCollisions(_player, _valuables)) {
+            std::cout<<"Collision between player and valuable"<<endl;
         }
+    }
 }
 
 /**
