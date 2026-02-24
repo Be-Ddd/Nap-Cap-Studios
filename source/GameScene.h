@@ -19,6 +19,8 @@
 #include <unordered_set>
 #include "InputController.h"
 #include "CollisionController.h"
+#include "ValuableSet.h"
+#include "Player.h"
 
 
 
@@ -43,6 +45,8 @@ protected:
     // MODELS should be shared pointers or a data structure of shared pointers
     /** The JSON value with all of the constants */
     std::shared_ptr<cugl::JsonValue> _constants;
+    /** The location of all of the active valuables */
+    ValuableSet _valuables;
     
     /** The location of all of the active asteroids */
     enum class GameState {
@@ -65,6 +69,8 @@ protected:
     std::shared_ptr<cugl::audio::Sound> _laser;
 
     std::shared_ptr<cugl::audio::Sound> _blast;
+    
+    std::shared_ptr<Player> _player;
 public:
 #pragma mark -
 #pragma mark Constructors

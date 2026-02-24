@@ -57,6 +57,18 @@ bool GameScene::init(const std::shared_ptr<cugl::AssetManager>& assets) {
     // Get the background image and constant values
     _background = assets->get<Texture>("background");
     _constants = assets->get<JsonValue>("constants");
+
+    // Initialize valuables
+    _valuables.init(_constants->get("valuables"));
+    _valuables.setTexture(assets->get<Texture>("valuable1"));
+    
+    auto pjson = _constants->get("player")->get("pos");
+    cugl::Vec2 start(
+        pjson->get(0)->asFloat(),
+        pjson->get(1)->asFloat()
+    );
+    _player = std::make_shared<Player>(start);
+    _player->setTexture(assets->get<Texture>("player"));
     
     _collisions.init(getSize());
     _gameState = GameState::PLAYING;
@@ -84,6 +96,7 @@ void GameScene::dispose() {
  */
 void GameScene::reset() {
     _gameState = GameState::PLAYING;
+    _valuables.init(_constants->get("valuables"));
 }
 
 /**
@@ -119,7 +132,8 @@ void GameScene::render() {
     
     _batch->draw(_background,Rect(Vec2::ZERO,getSize()));
     //draw things here
-    
+    _valuables.draw(_batch, getSize());
+    _player->draw(_batch);
     _batch->setColor(Color4::BLACK);
      
     _batch->end();
