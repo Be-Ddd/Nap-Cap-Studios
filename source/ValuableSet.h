@@ -125,7 +125,7 @@ public:
         /**
          * Updates the valuable one animation frame
          */
-        void update(cugl::Size size, Vec2 pos);
+        void update(cugl::Size size, cugl::Vec2 pos);
 
     };
 

@@ -51,7 +51,7 @@ void ValuableSet::Valuable::setState(Status state, int id) {
  * This method performs no
  * collision detection. Collisions are resolved afterwards.
  */
-void ValuableSet::Valuable::update(Size size, Vec2 pos) {
+void ValuableSet::Valuable::update(Size size, cugl::Vec2 pos) {
     // position += velocity;
     position = pos;
 }
