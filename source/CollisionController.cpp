@@ -27,6 +27,7 @@ using namespace cugl;
  */
 bool CollisionController::resolveCollisions(const std::shared_ptr<Player>& player, ValuableSet& vset) {
     bool collision = false;
+    std::cout<<"enter resolveCollisions"<<std::endl;
     for (auto it = vset.current.begin(); it != vset.current.end(); ++it) {
         // Calculate the normal of the (possible) point of collision
         std::shared_ptr<ValuableSet::Valuable> val = *it;
@@ -36,6 +37,7 @@ bool CollisionController::resolveCollisions(const std::shared_ptr<Player>& playe
         // Calculate the grid the valuable is in
         int x_val = static_cast<int>(((*it)->position.x - 30.0f) / 100.0f);
         int y_val = static_cast<int>(((*it)->position.y) / 100.0f);
+        // Pick up automatically when in the same grid, should add stealing process later
         if (x_player == x_val && y_player == y_val) {
             (*it)->setState(ValuableSet::Valuable::CARRIED, player->getPlayerID());
             player->setCarrying(true);
