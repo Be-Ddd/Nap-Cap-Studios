@@ -57,6 +57,10 @@ bool GameScene::init(const std::shared_ptr<cugl::AssetManager>& assets) {
     // Get the background image and constant values
     _background = assets->get<Texture>("background");
     _constants = assets->get<JsonValue>("constants");
+
+    // Initialize the asteroid set
+    _valuables.init(_constants->get("valuables"));
+    _valuables.setTexture(assets->get<Texture>("valuable1"));
     
     _collisions.init(getSize());
     _gameState = GameState::PLAYING;
@@ -84,6 +88,7 @@ void GameScene::dispose() {
  */
 void GameScene::reset() {
     _gameState = GameState::PLAYING;
+    _valuables.init(_constants->get("valuables"));
 }
 
 /**
@@ -119,7 +124,7 @@ void GameScene::render() {
     
     _batch->draw(_background,Rect(Vec2::ZERO,getSize()));
     //draw things here
-    
+    _valuables.draw(_batch, getSize());
     _batch->setColor(Color4::BLACK);
      
     _batch->end();
