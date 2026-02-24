@@ -97,7 +97,7 @@ bool ValuableSet::init(std::shared_ptr<cugl::JsonValue> data) {
                 pos.x = entry->get(0)->get(0)->asFloat(0);
                 pos.y = entry->get(0)->get(1)->asFloat(0);
                 int type;
-                type = entry->get(1)->asInt(0);
+                type = entry->get(1)->get(0)->asInt(0);
                 spawnValuable(pos, type);
             }
         }
