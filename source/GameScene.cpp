@@ -123,7 +123,6 @@ void GameScene::update(float dt) {
         // the update loop
         if (_input.getDirection()!= Direction::None){
             _player->move(_input.getDirection(),_gridSize,_nRow,_nCol);
-            }
         }
         std::vector<cugl::Vec2> player_pos;
         player_pos.push_back(_player->getPosition());
