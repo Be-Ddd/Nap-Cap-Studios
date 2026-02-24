@@ -31,6 +31,11 @@ using namespace std;
 #define SCENE_HEIGHT 720
 
 #pragma mark -
+#pragma mark Helper
+
+ 
+
+#pragma mark -
 #pragma mark Constructors
 /**
  * Initializes the controller contents, and starts the game
@@ -114,6 +119,7 @@ bool GameScene::init(const std::shared_ptr<cugl::AssetManager>& assets) {
     return true;
 }
 
+
 /**
  * Disposes of all (non-static) resources allocated to this mode.
  */
@@ -152,12 +158,17 @@ void GameScene::update(float dt) {
     std::cout << "Enter update" << endl;
     if (_gameState==GameState::PLAYING){
         // the update loop
+ 
         std::vector<cugl::Vec2> player_pos;
         player_pos.push_back(_player->getPosition());
         _valuables.update(getSize(), player_pos);
 
         if (_collisions.resolveCollisions(_player, _valuables)) {
             std::cout<<"Collision between player and valuable"<<endl;
+        }
+        
+        if (_input.getDirection()!= Direction::None){
+            _player->move(_input.getDirection(),_gridSize,_nRow,_nCol);
         }
     }
 }
