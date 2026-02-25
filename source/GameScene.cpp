@@ -77,6 +77,7 @@ bool GameScene::init(const std::shared_ptr<cugl::AssetManager>& assets) {
     );
     _player = std::make_shared<Player>(start);
     _player->setTexture(assets->get<Texture>("player"));
+    _player->setCarry(assets->get<Texture>("carry"));
     
     _collisions.init(getSize());
     _gameState = GameState::PLAYING;
@@ -251,11 +252,11 @@ void GameScene::update(float dt) {
             }
         }
     }
-    if (_step >= _interval) {
+
+    if (_step >=_interval){
         //BANG!!!
         //(plays Bang on beat)
-        _step = 0.0f;
-        AudioEngine::get()->play("bang", _bang, false, _bang->getVolume(), true);
+        _step =0.0f;
     }
 }
 
@@ -281,7 +282,6 @@ void GameScene::render() {
      
     _batch->end();
 
-    // Draw scene graph children (overlay) on top via the proper Scene2 pipeline
     Scene2::render();
 }
 
