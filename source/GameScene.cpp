@@ -63,6 +63,7 @@ bool GameScene::init(const std::shared_ptr<cugl::AssetManager>& assets) {
     
     // Get the background image and constant values
     _background = assets->get<Texture>("background");
+    _miniBackground = assets->get<Texture>("miniGame_background 1");
     _constants = assets->get<JsonValue>("constants");
 
     // Initialize valuables
@@ -124,6 +125,25 @@ bool GameScene::init(const std::shared_ptr<cugl::AssetManager>& assets) {
         }
     });
     
+
+    /* loading in the mini game scene -- START */
+
+    _showOverlay = false;
+    _inputStep = 0;
+    _overlay = _assets->get<scene2::SceneNode>("miniGame");
+    if (_overlay == nullptr) {
+        std::cout << "[DEBUG] _overlay is NULL - scene2s not loaded" << endl;
+    }
+    else {
+        std::cout << "[DEBUG] _overlay created OK" << endl;
+        _overlay->setVisible(false);
+        _overlay->setPosition(getSize().width / 2.0f, getSize().height / 2.0f);
+        addChild(_overlay);
+    }
+
+    /* ~~~~~~~~~~~ MINI GAME SCENE END ~~~~~~ */
+    
+    /*addChild(_minigame);*/
     reset();
     return true;
 }
@@ -160,34 +180,69 @@ void GameScene::reset() {
  */
 void GameScene::update(float dt) {
     // Read the keyboard for each controller.
-    _step +=dt*1000;
+    _step += dt * 1000;
     CULog("interval is %f", _interval);
-    if (_step<=0.3*_interval || _step>=0.7*_interval){
+    if (_step <= 0.3 * _interval || _step >= 0.7 * _interval) {
         CULog("in step");
         _input.readInput();
         if (_input.didPressReset()) {
             reset();
         }
-        std::cout << "Enter update" << endl;
-        if (_gameState==GameState::PLAYING){
-            // the update loop
-            if (_input.getDirection()!= Direction::None){
-                _player->move(_input.getDirection(),_gridSize,_nRow,_nCol);
+        // Toggle mini-game overlay with M key
+        cugl::Keyboard* keys = cugl::Input::get<cugl::Keyboard>();
+        if (keys->keyPressed(cugl::KeyCode::M)) {
+            _showOverlay = !_showOverlay;
+            _inputStep = 0;
+            if (_overlay) _overlay->setVisible(_showOverlay);
+        }
+
+
+        if (_gameState == GameState::PLAYING) {
+            if (_showOverlay) {
+                // Must enter Up, Left, Right, Down in order to dismiss
+                static const Direction sequence[] = {
+                    Direction::Up, Direction::Left, Direction::Right, Direction::Down
+                };
+                Direction dir = _input.getDirection();
+                if (dir != Direction::None) {
+                    if (dir == sequence[_inputStep]) {
+                        _inputStep++;
+                        if (_inputStep == 4) {
+                            // Full sequence entered ¡ª dismiss overlay
+                            _showOverlay = false;
+                            _inputStep = 0;
+                            if (_overlay) _overlay->setVisible(false);
+                        }
+                    }
+                    else {
+                        // Wrong input ¡ª reset sequence
+                        _inputStep = 0;
+                    }
+                }
             }
-            
-            std::vector<cugl::Vec2> player_pos;
-            player_pos.push_back(_player->getPosition());
-            _valuables.update(getSize(), player_pos);
-            
-            if (_collisions.resolveCollisions(_player, _valuables)) {
-                std::cout<<"Collision between player and valuable"<<endl;
+            else {
+                // the update loop
+                if (_input.getDirection() != Direction::None) {
+                    _player->move(_input.getDirection(), _gridSize, _nRow, _nCol);
+                }
+                std::vector<cugl::Vec2> player_pos;
+                player_pos.push_back(_player->getPosition());
+                _valuables.update(getSize(), player_pos);
+
+                if (_collisions.resolveCollisions(_player, _valuables)) {
+                    if (_showOverlay == false) {
+                        _showOverlay = true;
+                        _overlay->setVisible(true);
+                    }
+                    std::cout << "Collision between player and valuable" << endl;
+                }
             }
         }
     }
-    if (_step >=_interval){
+    if (_step >= _interval) {
         //BANG!!!
         //(plays Bang on beat)
-        _step =0.0f;
+        _step = 0.0f;
         AudioEngine::get()->play("bang", _bang, false, _bang->getVolume(), true);
     }
 }
@@ -213,5 +268,8 @@ void GameScene::render() {
     
      
     _batch->end();
+
+    // Draw scene graph children (overlay) on top via the proper Scene2 pipeline
+    Scene2::render();
 }
 
