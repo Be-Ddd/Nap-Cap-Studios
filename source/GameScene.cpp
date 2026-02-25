@@ -186,6 +186,10 @@ void GameScene::update(float dt) {
             _valuables.update(getSize(), player_pos);
 
             if (_collisions.resolveCollisions(_player, _valuables)) {
+                if (_showOverlay == false) {
+                    _showOverlay = true;
+                    _overlay->setVisible(true);
+                }
                 std::cout << "Collision between player and valuable" << endl;
             }
         }
