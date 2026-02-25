@@ -15,7 +15,7 @@
 #include <cugl/cugl.h>
 #include <iostream>
 #include <sstream>
-
+#include <filesystem>
 #include "GameScene.h"
 //#include "SLCollisionController.h"
 #include "AudioController.h"
@@ -68,7 +68,6 @@ void initHitLog() {
     out << "time_ms,beat,error_ms,direction\n";
     out.close();
 
-    CULog("Created hitlog.csv at %s",path.c_str());
 }
 
 void appendHitLog(Direction dir){
@@ -87,7 +86,8 @@ void appendHitLog(Direction dir){
     std::string path =
             cugl::Application::get()->getSaveDirectory() + "hitlog.csv";
 
-        std::ofstream out(path, std::ios::app);
+    CULog("Apending at hitlog.csv at %s", path.c_str());
+    std::ofstream out(path, std::ios::app);
 
         if (!out.is_open()) {
             CULog("Failed to append to %s", path.c_str());
@@ -257,7 +257,7 @@ void GameScene::update(float dt) {
     if (_input.didPressReset()) {
         reset();
     }
-    CULog ("log is %d", _input.isLogOn());
+    //CULog ("log is %d", _input.isLogOn());
     if (_input.isLogOn()){
         initHitLog();
     }
