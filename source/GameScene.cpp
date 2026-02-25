@@ -195,7 +195,7 @@ void GameScene::update(float dt) {
             _inputStep = 0;
             if (_overlay) _overlay->setVisible(_showOverlay);
         }
-        if (_input.didDrop()) {
+        if (_input.didDrop() and _player->isCarrying()) {
             _valuables.set_val_dropped(_player->getCarried());
             _player->setCarrying(false, -1);
 
