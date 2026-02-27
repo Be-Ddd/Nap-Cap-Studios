@@ -257,6 +257,8 @@ void GameScene::update(float dt) {
     if (_input.didPressReset()) {
         reset();
     }
+    CULog("start: %d",_input.queryStartEventReady());
+    CULog("end: %d",_input.queryEndEventReady());
     //CULog ("log is %d", _input.isLogOn());
     if (_input.isLogOn()){
         initHitLog();
