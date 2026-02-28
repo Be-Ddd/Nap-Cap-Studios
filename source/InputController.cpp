@@ -83,12 +83,29 @@ void InputController::readInput() {
     KeyCode log = KeyCode::L;
     KeyCode reset = KeyCode::R;
     int focusedID = -1;
+
+    Mouse* mouse = Input::get<Mouse>();
+    if (mouse) {
+        if (mouse->buttonDown().hasLeft()) {
+            _start_touch_event.position = mouse->pointerPosition();
+            _start_touch_event.pressure = 1;
+            _start_touch_event.touch = focusedID;
+            _start_touch_event.timestamp = Timestamp();
+        }
+        else if (mouse->buttonUp().hasLeft() && _start_touch_event.pressure) {
+            _end_touch_event.position = mouse->pointerPosition();
+            _end_touch_event.pressure = 1;
+            _end_touch_event.touch = focusedID;
+            _end_touch_event.timestamp = Timestamp();
+        }
+    }
     if (key_board->keyPressed(up) || key_board->keyPressed(down) || key_board->keyPressed(left) || key_board->keyPressed(right) || key_board->keyPressed(tap)) {
-        _start_touch_event.position = Vec2(0,0);
+        _start_touch_event.position = Vec2(0, 0);
         _start_touch_event.pressure = 1;
         _start_touch_event.touch = focusedID;
         _start_touch_event.timestamp = Timestamp();
-    } else if (key_board->keyReleased(up) || key_board->keyReleased(down) || key_board->keyReleased(left) || key_board->keyReleased(right) || key_board->keyReleased(tap)) {
+    }
+    else if (key_board->keyReleased(up) || key_board->keyReleased(down) || key_board->keyReleased(left) || key_board->keyReleased(right) || key_board->keyReleased(tap)) {
         _end_touch_event.pressure = 1;
         _end_touch_event.touch = focusedID;
         _end_touch_event.timestamp = Timestamp();
@@ -96,26 +113,31 @@ void InputController::readInput() {
         Vec2 dir;
 
         if (key_board->keyReleased(up)) {
-            dir = Vec2(0, 100);
-        } else if (key_board->keyReleased(down)) {
             dir = Vec2(0, -100);
-        } else if(key_board->keyReleased(left)) {
-            dir = Vec2(-100,0);
-        } else if(key_board->keyReleased(right)) {
-            dir = Vec2(100,0);
-        } else if(key_board->keyReleased(tap)) {
-            dir = Vec2(0,0);
+        }
+        else if (key_board->keyReleased(down)) {
+            dir = Vec2(0, 100);
+        }
+        else if (key_board->keyReleased(left)) {
+            dir = Vec2(100, 0);
+        }
+        else if (key_board->keyReleased(right)) {
+            dir = Vec2(-100, 0);
+        }
+        else if (key_board->keyReleased(tap)) {
+            dir = Vec2(0, 0);
         }
 
         _end_touch_event.position = dir;
     }
-    
+
     // Reset the game
     if (key_board->keyDown(reset)) {
         _didReset = true;
     }
-    if (key_board->keyPressed(log)){
+    if (key_board->keyPressed(log)) {
         _logOn = !_logOn;
     }
+
 #endif
 }

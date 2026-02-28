@@ -432,10 +432,10 @@ GameScene::InputType GameScene::_interpretActionHelper(TouchEvent first, TouchEv
     else {
         Vec2 displacment = second.position - first.position;
         if (abs(displacment.x) > abs(displacment.y)) {
-            return displacment.x >= 0 ? GameScene::InputType::RIGHT_SWIPE : GameScene::InputType::LEFT_SWIPE;
+            return displacment.x <= 0 ? GameScene::InputType::RIGHT_SWIPE : GameScene::InputType::LEFT_SWIPE;
         }
         else {
-            return displacment.y >= 0 ? GameScene::InputType::UP_SWIPE : GameScene::InputType::DOWN_SWIPE;
+            return displacment.y <= 0 ? GameScene::InputType::UP_SWIPE : GameScene::InputType::DOWN_SWIPE;
         }
     }
 }
