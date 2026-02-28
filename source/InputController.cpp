@@ -29,6 +29,10 @@ InputController::InputController() :
     _dir(Direction::None),
     _didPress(false),
     _logOn(false){
+    _start_touch_event = TouchEvent();
+    _start_touch_event.pressure = 0;
+    _end_touch_event = TouchEvent();
+    _end_touch_event.pressure = 0;
 }
 
 
@@ -42,7 +46,6 @@ InputController::InputController() :
  * are more appropriate for menus and buttons (like the loading screen).
  */
 void InputController::readInput() {
-
     // Convert keyboard state into game commands
     _dir = Direction::None;
     _didReset = false;
@@ -60,12 +63,14 @@ void InputController::readInput() {
         TouchID focusedID = touch_ids[0];
         if (touch_screen->touchDown(focusedID)) {
             _start_touch_event.position = touch_screen->touchPosition(focusedID);
+            _end_touch_event.position.x *= -1;
             _start_touch_event.pressure = 1;
             _start_touch_event.touch = focusedID;
             _start_touch_event.timestamp = Timestamp();
         }
         else if (touch_screen->touchReleased(focusedID) && _start_touch_event.pressure) {
             _end_touch_event.position = touch_screen->touchPosition(_start_touch_event.touch);
+            _start_touch_event.position.x *= -1;
             _end_touch_event.pressure = 1;
             _end_touch_event.touch = focusedID;
             _end_touch_event.timestamp = Timestamp();
@@ -88,24 +93,28 @@ void InputController::readInput() {
     if (mouse) {
         if (mouse->buttonDown().hasLeft()) {
             _start_touch_event.position = mouse->pointerPosition();
+            _start_touch_event.position.x *= -1;
             _start_touch_event.pressure = 1;
             _start_touch_event.touch = focusedID;
             _start_touch_event.timestamp = Timestamp();
         }
         else if (mouse->buttonUp().hasLeft() && _start_touch_event.pressure) {
             _end_touch_event.position = mouse->pointerPosition();
+            _end_touch_event.position.x *= -1;
             _end_touch_event.pressure = 1;
             _end_touch_event.touch = focusedID;
             _end_touch_event.timestamp = Timestamp();
         }
     }
     if (key_board->keyPressed(up) || key_board->keyPressed(down) || key_board->keyPressed(left) || key_board->keyPressed(right) || key_board->keyPressed(tap)) {
+        CULog("A");
         _start_touch_event.position = Vec2(0, 0);
-        _start_touch_event.pressure = 1;
         _start_touch_event.touch = focusedID;
         _start_touch_event.timestamp = Timestamp();
+        _start_touch_event.pressure = 1;
     }
-    else if (key_board->keyReleased(up) || key_board->keyReleased(down) || key_board->keyReleased(left) || key_board->keyReleased(right) || key_board->keyReleased(tap)) {
+    else if (_start_touch_event.pressure && (key_board->keyReleased(up) || key_board->keyReleased(down) || key_board->keyReleased(left) || key_board->keyReleased(right) || key_board->keyReleased(tap))) {
+        CULog("B");
         _end_touch_event.pressure = 1;
         _end_touch_event.touch = focusedID;
         _end_touch_event.timestamp = Timestamp();
@@ -130,7 +139,6 @@ void InputController::readInput() {
 
         _end_touch_event.position = dir;
     }
-
     // Reset the game
     if (key_board->keyDown(reset)) {
         _didReset = true;

@@ -46,6 +46,7 @@ struct HitLog {
 std::vector<HitLog> _hitLog;
 
 double _songTimeMs = 3.429f*1000.0f;
+float  bpm = 70.0f;
 
 #include <fstream>
 #include <iomanip>
@@ -72,7 +73,7 @@ void initHitLog() {
 
 void appendHitLog(Direction dir){
     //things for the log
-    double msPerBeat = 60000.0 / 70.0f;
+    double msPerBeat = 60000.0f / bpm;
     double beatPos = _songTimeMs / msPerBeat;
     int nearestBeat = (int)std::llround(beatPos);
     double errorMsDouble = (beatPos - nearestBeat) * msPerBeat;
@@ -152,10 +153,10 @@ bool GameScene::init(const std::shared_ptr<cugl::AssetManager>& assets) {
     auto bgm = assets->get<Sound>("bgm");
     AudioEngine::get()->play("bgm", bgm, true);
     global_start_stamp.mark();
-    timestamp_by_beat = { global_start_stamp,global_start_stamp + 70/60 * 1000000 ,global_start_stamp ,global_start_stamp};
+    timestamp_by_beat = { global_start_stamp,global_start_stamp + 60000000 / bpm ,global_start_stamp ,global_start_stamp};
     inputs_by_beat = { 4,GameScene::InputType::NO_INPUT };
-    //hard coded, change later
-    _interval = 60.0f/70.0f*1000 ;
+    //hard coded, change later in ms
+    _interval = 1000*60.0f/bpm ;
     _bang = assets->get<Sound>("bang");
     
     
@@ -252,19 +253,21 @@ void GameScene::update(float dt) {
     // Read the keyboard for each controller.
     Timestamp current_time = Timestamp();
     Uint64 elapsedMs = Timestamp::ellapsedMillis(global_start_stamp, current_time);
-    int updatedBeatNumber = (elapsedMs * 70 / 60000) % 4;
+    int updatedBeatNumber = (int) (elapsedMs / _interval) % 4;
     if (global_beat != updatedBeatNumber) {
-        //CULog("%d beat", global_beat);
+        CULog("%d beat", global_beat);
         global_beat = updatedBeatNumber;
-        timestamp_by_beat[global_beat].set(current_time);
-        timestamp_by_beat[(global_beat + 1) % 4] = current_time + (70 / 60) * 1000000000;
+        timestamp_by_beat[global_beat].mark();
+        //timestamp_by_beat[(global_beat + 1) % 4] = current_time + ((60 / bpm) * 1000000000000);
         _gameState = global_beat >= 2 ? GameState::OUTPUT : GameState::INPUT;
         if (global_beat == 3 and _gameState == GameState::OUTPUT) {
             inputs_by_beat[0] = InputType::NO_INPUT;
             inputs_by_beat[1] = InputType::NO_INPUT;
         }
-        CULog("global beat %d, game state %d", global_beat, _gameState);
-        CULog("recorded actions: %d %d %d %d", inputs_by_beat[0], inputs_by_beat[1], inputs_by_beat[2], inputs_by_beat[3]);
+        //CULog("global beat %d, game state %d", global_beat, _gameState);
+        //CULog("recorded actions: %d %d %d %d", inputs_by_beat[0], inputs_by_beat[1], inputs_by_beat[2], inputs_by_beat[3]);
+        //CULog("global beat %d, actie time stamp %llu", global_beat, timestamp_by_beat[global_beat].getTime());
+        //CULog("%llu",  timestamp_by_beat[global_beat].getTime());
     }
     
     //records for the log
@@ -282,6 +285,7 @@ void GameScene::update(float dt) {
     if (_input.isLogOn()){
         initHitLog();
     }
+    //CULog("press ready %d, output ready %d", _input.peekStartEvent().pressure, _input.peekEndEvent().pressure);
     if (_gameState == GameState::OUTPUT) {
         //CULog("recorded actions: %d %d %d %d", inputs_by_beat[0], inputs_by_beat[1], inputs_by_beat[2], inputs_by_beat[3]);
         if (inputs_by_beat[0] == inputs_by_beat[1]) {
@@ -385,10 +389,12 @@ void GameScene::update(float dt) {
 void GameScene::_gestureInputProcesserHelper() {
     //need current beat filled to compare against
     //hard coded epsilon errors, should pull out later
-    float poor = .2;
-    float ok = .15;
-    float good = .10;
-    float perfect = .05;
+    
+    // the following ranges exist from percentages and are compared against the milli delta b/n expected and actual input:
+    float poor = .35;     // poor * _interval = +-300 ms
+    float ok = .25;       // ok * _interval = +-214.285714286 ms
+    float good = .15;     // good * _interval = +-128.571428571  ms
+    float perfect = 10; // perfect * _interval = +-85.7142857143 ms
     //pixel deadzone radius to prevent interpreting taps as slides
     if (_input.queryInputReady()) {
         //need to account for holding action
@@ -408,25 +414,43 @@ void GameScene::_gestureInputProcesserHelper() {
             float delta1 = Timestamp::ellapsedMillis(timestamp_by_beat[i], press);
             float delta2 = Timestamp::ellapsedMillis(press, timestamp_by_beat[i]);
             float delta = delta1 < delta2 ? delta1 : delta2;
-            //CULog("delta: %f", delta);
+            CULog("delta: %f", delta);
             if (delta < smallest_delta) {
                 smallest_delta = delta;
                 smallest_beat_index = i;
             }
         }
-        //CULog("Closest delta: %f ms (beat index %d)", smallest_delta, smallest_beat_index);
+        CULog("Closest delta: %f ms (beat index %d)", smallest_delta, smallest_beat_index);
+
+        string beat_feedback = "";
+        if (smallest_delta > _interval * poor) {
+            beat_feedback = "miss";
+        }
+        else if (smallest_delta > _interval * ok) {
+            beat_feedback = "poor";
+        }
+        else if (smallest_delta > _interval * good) {
+            beat_feedback = "ok";
+        }
+        else if (smallest_delta > _interval * perfect) {
+            beat_feedback = "good";
+        }
+        else {
+            beat_feedback = "perfect";
+        }
         //CULog("temp");
-        if (inputs_by_beat[smallest_beat_index] == InputType::NO_INPUT) {
+        if (inputs_by_beat[smallest_beat_index] == InputType::NO_INPUT and beat_feedback != "miss") {
             InputType interpreted_action = _interpretActionHelper(first, second);
             inputs_by_beat[smallest_beat_index] = interpreted_action;
         }
-
+        //AudioEngine::get()->play("bang", _bang, false, _bang->getVolume(), true);
+        CULog(beat_feedback.c_str());
         _input.clearTouchEvents();
 
     }
 }
 
-GameScene::InputType GameScene::_interpretActionHelper(TouchEvent first, TouchEvent second) {
+GameScene::InputType GameScene::_interpretActionHelper(TouchEvent first, TouchEvent second ) {
     int input_deadzone = 225; //15^2
     if (first.position.distanceSquared(second.position) <= input_deadzone) {
         return InputType::TAP;
@@ -434,10 +458,10 @@ GameScene::InputType GameScene::_interpretActionHelper(TouchEvent first, TouchEv
     else {
         Vec2 displacment = second.position - first.position;
         if (abs(displacment.x) > abs(displacment.y)) {
-            return displacment.x >= 0 ? GameScene::InputType::RIGHT_SWIPE : GameScene::InputType::LEFT_SWIPE;
+            return displacment.x <= 0 ? GameScene::InputType::RIGHT_SWIPE : GameScene::InputType::LEFT_SWIPE;
         }
         else {
-            return displacment.y < 0 ? GameScene::InputType::UP_SWIPE : GameScene::InputType::DOWN_SWIPE;
+            return displacment.y <= 0 ? GameScene::InputType::UP_SWIPE : GameScene::InputType::DOWN_SWIPE;
         }
     }
 }

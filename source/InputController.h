@@ -57,8 +57,8 @@ public:
         return _didDrop;
     }
 
-    bool queryInputReady() const {
-        return _start_touch_event.pressure && _end_touch_event.pressure;
+    bool queryInputReady() {
+        return _start_touch_event.pressure == 1 && _end_touch_event.pressure == 1;
     }
 
     bool queryStartEventReady(){
