@@ -294,32 +294,63 @@ void GameScene::update(float dt) {
         if (_collisions.resolveCollisions(_player, _valuables)) {
             std::cout<<"Collision between player and valuable"<<endl;
             */
+        _inWindow = true;
 
 
         if (_gameState == GameState::PLAYING) {
             if (_showOverlay) {
                 // Must enter Up, Left, Right, Down in order to dismiss
-                static const Direction sequence[] = {
+                /*static const Direction sequence[] = {
                     Direction::Up, Direction::Left, Direction::Right, Direction::Down
-                };
+                };*/
+                if (directionSequence.empty()) { // Random generate directions
+                    for (int i = 0; i < 4; i++) {
+                        int r = rand() % 4;
+                        Direction dir = static_cast<Direction>(r);
+                        directionSequence.push_back(dir);
+                        auto button = _overlay->getChild(i + 2);
+                        if (button && button->getChildren().size() > 0) {
+                            auto img = button->getChild(0);
+                            if (img) {
+                            float degree = 0.0f;
+                                switch (dir) {
+                                    case Direction::Right: degree = -90; break;
+                                    case Direction::Up:    degree = 0; break;
+                                    case Direction::Left:  degree = 90; break;
+                                    case Direction::Down:  degree = 180; break;
+                                }
+                                img->setAngle(degree * M_PI / 180.0f);
+                            }
+                        }
+                    }
+                }
                 Direction dir = _input.getDirection();
-                if (dir != Direction::None) {
+                if (dir != Direction::None && _countDownMini == 0) {
                 
                     appendHitLog(dir,_input.isLogOn());
                     
-                    
-                    if (dir == sequence[_inputStep]) {
+                    _inputOnBeat = true;
+                    if (dir == directionSequence[_inputStep]) {
+                        CULog("on beat");
                         _inputStep++;
                         if (_inputStep == 4) {
                             // Full sequence entered ¡ª dismiss overlay
                             _showOverlay = false;
                             _inputStep = 0;
                             if (_overlay) _overlay->setVisible(false);
+                            _countDownMini = 5;
+                            directionSequence.clear();
                         }
                     }
                     else {
-                        // Wrong input ¡ª reset sequence
+                        // Wrong input ¡ª fail the minigame
                         _inputStep = 0;
+                        _showOverlay = false;
+                        _valuables.set_val_dropped(_player->getCarried());
+                        _player->setCarrying(false, -1);
+                        if (_overlay) _overlay->setVisible(false);
+                        _countDownMini = 5;
+                        directionSequence.clear();
                     }
                 }
             }
@@ -337,12 +368,39 @@ void GameScene::update(float dt) {
             }
         }
     }
+    else {
+        _inWindow = false;
+        if (_gameState == GameState::PLAYING) {
+            if (!_inWindow && _wasInWindow) { // Exit an input window
+                if (!_inputOnBeat && _countDownMini == 0 && _showOverlay) {
+                    CULog("off beat");
+                    _inputStep = 0;
+                    _showOverlay = false;
+                    _valuables.set_val_dropped(_player->getCarried());
+                    _player->setCarrying(false, -1);
+                    if (_overlay) _overlay->setVisible(false);
+                    _countDownMini = 5;
+                    directionSequence.clear();
+                }
+                if (_showOverlay) { // Check again
+                    _countDownMini = max(_countDownMini - 1, 0);
+                    CULog("%d", _countDownMini);
+                }
+                
+            }
+        }
+    }
+
+    if (_inWindow && !_wasInWindow) { // Enter a new input window
+        _inputOnBeat = false;
+    }
 
     if (_step >=_interval){
         //BANG!!!
-        //(plays Bang on beat)
+        //(plays Bang on beat)    
         _step =0.0f;
     }
+    _wasInWindow = _inWindow;
 }
 
 /**
@@ -364,7 +422,7 @@ void GameScene::render() {
     _player->draw(_batch);
     _batch->setColor(Color4::BLACK);
     
-     
+
     _batch->end();
 
     Scene2::render();
