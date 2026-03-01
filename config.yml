@@ -1,6 +1,6 @@
 ---
-name:   Ship Lab                    # The application display name
-short:  Ship                        # A shortened name for reference
+name:   Midnight Meowseum                    # The application display name
+short:  Demo                        # A shortened name for reference
 appid:  edu.cornell.gdiac.code1     # Application identifier for Mac, iOS, Android
 suffix: GFC31DEC
 

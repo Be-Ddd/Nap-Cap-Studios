@@ -215,7 +215,7 @@ bool GameScene::init(const std::shared_ptr<cugl::AssetManager>& assets) {
     /* ~~~~~~~~~~~ MINI GAME SCENE END ~~~~~~ */
     
     /*addChild(_minigame);*/
-    initHitLog();
+    //initHitLog();
     reset();
     return true;
 }
@@ -264,10 +264,10 @@ void GameScene::update(float dt) {
     }
     //CULog ("log is %d", _input.isLogOn());
     if (_input.isLogOn()){
-        initHitLog();
+        //initHitLog();
     }
     
-    if (_step <= 0.2 * _interval || _step >= 0.8 * _interval) {
+    if (_step <= 0.3 * _interval || _step >= 0.7 * _interval) {
         // Toggle mini-game overlay with M key
         cugl::Keyboard* keys = cugl::Input::get<cugl::Keyboard>();
         if (keys->keyPressed(cugl::KeyCode::M)) {
@@ -318,6 +318,7 @@ void GameScene::update(float dt) {
                                     case Direction::Up:    degree = 0; break;
                                     case Direction::Left:  degree = 90; break;
                                     case Direction::Down:  degree = 180; break;
+                                    default: break;
                                 }
                                 img->setAngle(degree * M_PI / 180.0f);
                             }
@@ -327,7 +328,7 @@ void GameScene::update(float dt) {
                 Direction dir = _input.getDirection();
                 if (dir != Direction::None && _countDownMini == 0) {
                 
-                    appendHitLog(dir,_input.isLogOn());
+                    //appendHitLog(dir,_input.isLogOn());
                     
                     _inputOnBeat = true;
                     if (dir == directionSequence[_inputStep]) {
@@ -358,7 +359,7 @@ void GameScene::update(float dt) {
 //                CULog("in update loop");
                 // the update loop
                 if (_input.getDirection() != Direction::None) {
-                    appendHitLog(_input.getDirection(),_input.isLogOn());
+                    //appendHitLog(_input.getDirection(),_input.isLogOn());
                     _player->move(_input.getDirection(), _gridSize, _nRow, _nCol);
                 }
                 std::vector<cugl::Vec2> player_pos;
