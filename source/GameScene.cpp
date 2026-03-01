@@ -150,7 +150,7 @@ bool GameScene::init(const std::shared_ptr<cugl::AssetManager>& assets) {
     _gameState = GameState::INPUT;
     
     // Play background music
-    auto bgm = assets->get<Sound>("bgm");
+    auto bgm = assets->get<Sound>("bgm2-2");
     AudioEngine::get()->play("bgm", bgm, true);
     global_start_stamp.mark();
     timestamp_by_beat = { global_start_stamp,global_start_stamp + 60000000 / bpm ,global_start_stamp ,global_start_stamp};
@@ -258,7 +258,7 @@ void GameScene::update(float dt) {
         CULog("%d beat", global_beat);
         global_beat = updatedBeatNumber;
         timestamp_by_beat[global_beat].mark();
-        //timestamp_by_beat[(global_beat + 1) % 4] = current_time + ((60 / bpm) * 1000000000000);
+        timestamp_by_beat[(global_beat + 1) % 4] = current_time + _interval * 1000000;
         _gameState = global_beat >= 2 ? GameState::OUTPUT : GameState::INPUT;
         if (global_beat == 3 and _gameState == GameState::OUTPUT) {
             inputs_by_beat[0] = InputType::NO_INPUT;

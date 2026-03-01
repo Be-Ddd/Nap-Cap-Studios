@@ -111,10 +111,10 @@ void InputController::readInput() {
         _start_touch_event.position = Vec2(0, 0);
         _start_touch_event.touch = focusedID;
         _start_touch_event.timestamp = Timestamp();
-        _start_touch_event.pressure = 1;
     }
-    else if (_start_touch_event.pressure && (key_board->keyReleased(up) || key_board->keyReleased(down) || key_board->keyReleased(left) || key_board->keyReleased(right) || key_board->keyReleased(tap))) {
+    else if ((key_board->keyReleased(up) || key_board->keyReleased(down) || key_board->keyReleased(left) || key_board->keyReleased(right) || key_board->keyReleased(tap))) {
         CULog("B");
+        _start_touch_event.pressure = 1;
         _end_touch_event.pressure = 1;
         _end_touch_event.touch = focusedID;
         _end_touch_event.timestamp = Timestamp();
