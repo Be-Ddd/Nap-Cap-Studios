@@ -16,6 +16,7 @@
 #ifndef __INPUT_CONTROLLER_H__
 #define __INPUT_CONTROLLER_H__
 #include "Direction.h"
+using namespace cugl;
 
 /**
  * Device-independent input manager.
@@ -28,6 +29,9 @@ class InputController {
 private:
     
     Direction _dir;
+
+    TouchEvent _start_touch_event;
+    TouchEvent _end_touch_event;
     
     bool _didPress;
     
@@ -36,10 +40,13 @@ private:
     bool _didReset;
     bool _didDrop;
     bool _didPickUp;
+    bool _pressed = false;
     bool _logOn = false;
+    bool _toggleOverlay = false;
+
+    
 
 public:
-    
     
     Direction getDirection() const{
         return _dir;
@@ -50,6 +57,36 @@ public:
     bool didDrop() const {
         return _didDrop;
     }
+    bool didToggleOverlay() const {
+        return _toggleOverlay;
+    }
+
+    bool queryInputReady() {
+        return _start_touch_event.pressure == 1 && _end_touch_event.pressure == 1;
+    }
+
+    bool queryStartEventReady(){
+        return _start_touch_event.pressure;
+    }
+    bool queryEndEventReady() {
+        return _end_touch_event.pressure;
+    }
+    TouchEvent peekStartEvent() {
+        return _start_touch_event;
+    }
+    TouchEvent peekEndEvent() {
+        return _end_touch_event;
+    }
+    std::pair<TouchEvent, TouchEvent> peekCompletedEvent () {
+        return std::pair(_start_touch_event, _end_touch_event);
+    }
+    void clearTouchEvents() {
+        _start_touch_event = TouchEvent();
+        _start_touch_event.pressure = 0;
+        _end_touch_event = TouchEvent();
+        _end_touch_event.pressure = 0;
+    }
+
     bool didPickUp() const {
         return _didPickUp;
     }
