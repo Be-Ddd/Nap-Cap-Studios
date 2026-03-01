@@ -49,14 +49,66 @@ protected:
     float _topOffeset = 120.0f;
     float _rightOffeset = 350.0f;
     float _gridSize = 100.0f;
-    float _interval;
+
+    /** the current beat of the game, 0 indexed from 0 to 3 (4 beats)*/
     int global_beat = 0;
+    /** timestamp when the music starts playing */
     Timestamp global_start_stamp;
+    /** 4 length vector innited after global_start_stamp, used to mark the time stamps of a beat 
+    (global_beat + 1) is populated early for early actions*/
     std::vector< Timestamp> timestamp_by_beat;
+    /** different gamestates that modifies the input types* */
+    enum class GameState {
+        INPUT,  // standered gameplay, when player enters actiosn in first two beats
+        OUTPUT, // standered gameplay, when game processes player acions
+        MBS,    // when mbs is active, changes input to read on each 4 beat
+        WON,    // undef
+        LOST    // undef
+    };
+    /** global var to read the game state */
+    GameState _gameState;
+
+    std::shared_ptr<cugl::graphics::TextLayout> _endMessage;
     
     // CONTROLLERS are attached directly to the scene (no pointers)
     /** The controller to manage the ship */
     InputController _input;
+
+    /** defined InputTypes to compare actions against */
+    enum class InputType { // what actually defines each is in gamescene _interpretActionHelper, needs to be double checked
+        NO_INPUT,     // base value on no input
+        FAILED_INPUT, // (player error) input qualified but too late/early or smthn
+
+        UP_SWIPE,     // y displacement > x displacment, y displacment <= 0 
+        DOWN_SWIPE,   // y displacement > x displacment, y displacment > 0
+        LEFT_SWIPE,   // x displacement >= y displacment, x displacment > 0
+        RIGHT_SWIPE,  // x displacement >= y displacment, x displacment <= 0  
+                      // RECALL THAT FOR MOUSE/TOUCH INPUTS THE X VALUE IN EACH ARE MULT BY -1
+
+        TAP,          // start and end displacment w/n 15 pixels (could be too small)
+        HOLD_START,   // undef for now
+        HOLD_END,     // undef for now
+    };
+    /** 4 length vector to store the actual inputs on the beat, independent of player performance */
+    std::vector< InputType> inputs_by_beat;
+
+    /** pulls the logic of reading input from input reader and turning into InputType out of main loop (messy) 
+    * 
+    * takes the ready dual input and evaluates what time it came in/is it valid
+    * uses _gestureInputProcesserHelper to convert to InputType
+    * 
+    * TODO: ACCOUNT FOR HOLDING ACTIONS
+    *       probably with additional logic on queryStartInputReady on one beat, store the result in a var and update later
+    *       and divert from standerd iff start was popualted on a beat prior
+    */
+    void _gestureInputProcesserHelper();
+
+    /** takes two TouchEvents (start and end) and returns the type of input it actually correlates to 
+    *
+    * the one that actually turns TouchEvent to InputType, and defines what is an 'UP_SIWPE'
+    */
+    InputType _interpretActionHelper(TouchEvent, TouchEvent);
+
     /** The controller for managing collisions */
     CollisionController _collisions;
     
@@ -69,16 +121,6 @@ protected:
     /** mini game scene*/
     /*std::shared_ptr<cugl::scene2::SceneNode> _minigame;*/
     
-    /** The location of all of the active asteroids */
-    enum class GameState {
-        INPUT,
-        OUTPUT,
-        MBS,
-        WON,
-        LOST
-    };
-    GameState _gameState;
-    std::shared_ptr<cugl::graphics::TextLayout> _endMessage;
 
     // VIEW items are going to be individual variables
     // In the future, we will replace this with the scene graph
@@ -125,19 +167,6 @@ protected:
     std::vector<Direction> directionSequence;
     
 
-    enum class InputType {
-        UP_SWIPE,
-        DOWN_SWIPE,
-        LEFT_SWIPE,
-        RIGHT_SWIPE,
-        TAP,
-        HOLD,
-        NO_INPUT,
-        FAILED_INPUT
-    };
-    std::vector< InputType> inputs_by_beat;
-    void _gestureInputProcesserHelper();
-    InputType _interpretActionHelper(TouchEvent, TouchEvent);
     
 public:
 
